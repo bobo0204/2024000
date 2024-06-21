@@ -16,6 +16,7 @@ def read(word):
         # s = row.find('sub')
         word = (f'{chinese} ==> {s})
         return word
+    except:
         return  '查無此字' 
     
 #read('國小')
