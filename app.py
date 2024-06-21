@@ -15,7 +15,7 @@
 
 import os
 import sys
-import phonetic
+import phonetic as ph
 import math
 
 from argparse import ArgumentParser
