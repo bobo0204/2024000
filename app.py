@@ -71,7 +71,7 @@ def callback():
 
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=ph.generate_question())
+            TextSendMessage(text=ph.read("event.message"))
         )
 
     return 'OK'
