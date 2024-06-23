@@ -53,7 +53,7 @@ def get_weather_info(city_name):
     }
     
     # 目標URL
-    base_url = 'https://www.cwb.gov.tw/V8/C/W/County/County.html?CID='
+    base_url = 'https://www.cwa.gov.tw/V8/C/W/County/index.html'
 
     # 城市名稱和ID的映射
     city_ids = {
