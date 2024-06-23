@@ -16,9 +16,6 @@
 import os
 import sys
 import phonetic as ph
-#from phonetic import read
-import custom_math
-
 from argparse import ArgumentParser
 
 from flask import Flask, request, abort
@@ -69,7 +66,7 @@ def callback():
         if not isinstance(event.message, TextMessage):
             continue
 
-         line_bot_api.reply_message(
+        line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text=ph.read(event.message.text))
         )
