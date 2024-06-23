@@ -1,7 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
-# word = input( '請輸入中文字:' )
-def read(word):
+
+#word = input( '請輸入中文字:' )
+
+def read( word ):
     url = f'https://dict.revised.moe.edu.tw/search.jsp?md=1&word={word}#searchL'
 
     html = requests.get( url )
@@ -14,9 +16,6 @@ def read(word):
         phone = [e.text for e in phones]
         s = " ".join( phone )
         # s = row.find('sub')
-        word = (f'{chinese} ==> {s}')
-        return word
+        return( chinese + '=>' + s )
     except:
-        return  '查無此字' 
-    
-#read('國小')
+        return( '查無此字' )
