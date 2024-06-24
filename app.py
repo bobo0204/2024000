@@ -28,6 +28,7 @@ from linebot.exceptions import (
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
 )
+from math_quiz import custom_math  # 引入 custom_math 函式
 
 app = Flask(__name__)
 
@@ -54,33 +55,6 @@ def get_news():
     return "\n".join(news_titles)
 
 
-def generate_question():
-    while True:
-        # 隨機生成三個個位數的數字
-        num1 = random.randint(1, 9)
-        num2 = random.randint(1, 9)
-        num3 = random.randint(1, 9)
-        
-        # 隨機選擇兩個運算符
-        operators = ['+', '-', '*', '/']
-        operator1 = random.choice(operators)
-        operator2 = random.choice(operators)
-
-        # 構建運算表達式
-        expression = f"{num1} {operator1} {num2} {operator2} {num3}"
-        
-        # 計算正確答案
-        try:
-            correct_answer = eval(expression)
-            # 確認答案為整數且無餘數
-            if correct_answer == int(correct_answer):
-                return expression, int(correct_answer)
-        except ZeroDivisionError:
-            continue
-        except SyntaxError:
-            continue
-
-
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -103,7 +77,7 @@ def callback():
             news = get_news()
             reply_text = news
         elif "題目" in user_message:
-            expression, correct_answer = generate_question()
+            expression, correct_answer = custom_math()  # 呼叫 custom_math 函式生成題目
             reply_text = f"請計算：{expression}"
         else:
             reply_text = ph.read(user_message)
