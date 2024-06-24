@@ -12,12 +12,12 @@
 #  License for the specific language governing permissions and limitations
 #  under the License.
 
-
 import os
 import sys
+import requests
+from bs4 import BeautifulSoup
 import phonetic as ph
 from argparse import ArgumentParser
-
 from flask import Flask, request, abort
 from linebot import (
     LineBotApi, WebhookParser
@@ -45,30 +45,42 @@ line_bot_api = LineBotApi(channel_access_token)
 parser = WebhookParser(channel_secret)
 
 
+def get_news():
+    url = "https://travel.ettoday.net/category/%E6%A1%83%E5%9C%92/"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+    titles = soup.find_all("h3", itemprop="headline", limit=5)
+    news_titles = [title.text.strip() for title in titles]
+    return "\n".join(news_titles)
+
+
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
-
-    # get request body as text
     body = request.get_data(as_text=True)
     app.logger.info("Request body: " + body)
 
-    # parse webhook body
     try:
         events = parser.parse(body, signature)
     except InvalidSignatureError:
         abort(400)
 
-    # if event is MessageEvent and message is TextMessage, then echo text
     for event in events:
         if not isinstance(event, MessageEvent):
             continue
         if not isinstance(event.message, TextMessage):
             continue
+        
+        user_message = event.message.text
+        if "新聞" in user_message:
+            news = get_news()
+            reply_text = news
+        else:
+            reply_text = ph.read(user_message)
 
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=ph.read(event.message.text))
+            TextSendMessage(text=reply_text)
         )
 
     return 'OK'
