@@ -28,7 +28,7 @@ from linebot.exceptions import (
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
 )
-from math_quiz import custom_math  # 引入 custom_math 函式
+from custom_math import custom_math  # 引入 custom_math 函式
 
 app = Flask(__name__)
 
