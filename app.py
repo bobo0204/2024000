@@ -1,9 +1,22 @@
 # -*- coding: utf-8 -*-
 
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
 import os
 import sys
 import requests
 from bs4 import BeautifulSoup
+import phonetic as ph
 from argparse import ArgumentParser
 from flask import Flask, request, abort
 from linebot import (
@@ -19,39 +32,38 @@ import random
 
 app = Flask(__name__)
 
-# 從環境變數中讀取 LINE Bot 的 channel secret 和 channel access token
-line_channel_secret = os.getenv('LINE_CHANNEL_SECRET')
-line_channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
-
-if line_channel_secret is None:
+# get channel_secret and channel_access_token from your environment variable
+channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
+channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', None)
+if channel_secret is None:
     print('Specify LINE_CHANNEL_SECRET as environment variable.')
     sys.exit(1)
-if line_channel_access_token is None:
+if channel_access_token is None:
     print('Specify LINE_CHANNEL_ACCESS_TOKEN as environment variable.')
     sys.exit(1)
 
-line_bot_api = LineBotApi(line_channel_access_token)
-parser = WebhookParser(line_channel_secret)
+line_bot_api = LineBotApi(channel_access_token)
+parser = WebhookParser(channel_secret)
 
 def generate_question():
     while True:
-        # Generate three random single-digit numbers
+        # 隨機生成三個個位數的數字
         num1 = random.randint(1, 9)
         num2 = random.randint(1, 9)
         num3 = random.randint(1, 9)
         
-        # Randomly choose two operators
+        # 隨機選擇兩個運算符
         operators = ['+', '-', '*', '/']
         operator1 = random.choice(operators)
         operator2 = random.choice(operators)
 
-        # Construct the mathematical expression
+        # 構建運算表達式
         expression = f"{num1} {operator1} {num2} {operator2} {num3}"
         
-        # Calculate the correct answer
+        # 計算正確答案
         try:
             correct_answer = eval(expression)
-            # Check if the answer is an integer with no remainder
+            # 確認答案為整數且無餘數
             if correct_answer == int(correct_answer):
                 return expression, int(correct_answer)
         except ZeroDivisionError:
@@ -59,25 +71,14 @@ def generate_question():
         except SyntaxError:
             continue
 
-def ask_question():
-    # Generate a random question
+def math_quiz():
+    # 生成一個隨機題目
     expression, correct_answer = generate_question()
     
-    # Prompt user to calculate the expression
-    prompt = f"Please calculate: {expression}"
+    # 提示用戶輸入答案
+    prompt = f"請計算：{expression}"
     
-    return prompt, correct_answer
-
-def check_answer(user_answer, correct_answer):
-    try:
-        user_answer = int(user_answer)
-    except ValueError:
-        return "Please enter a valid integer answer."
-    
-    if user_answer == correct_answer:
-        return "Great job, correct!"
-    else:
-        return "Incorrect, keep trying!"
+    return prompt
 
 def get_news():
     url = "https://travel.ettoday.net/category/%E6%A1%83%E5%9C%92/"
@@ -105,14 +106,13 @@ def callback():
             continue
         
         user_message = event.message.text
-        if "news" in user_message.lower():
+        if "新聞" in user_message:
             news = get_news()
             reply_text = news
-        elif "question" in user_message.lower():
-            expression, correct_answer = generate_question()
-            reply_text = f"Please calculate: {expression}"
+        elif "題目" in user_message:
+            reply_text = math_quiz()  # Call math_quiz function to get math question
         else:
-            reply_text = "Sorry, I don't understand."
+            reply_text = ph.read(user_message)
 
         line_bot_api.reply_message(
             event.reply_token,
